@@ -58,17 +58,17 @@ def main():
     print "Welcome to SMS Unsub Script!"
     print "Steps:"
     print "1. Ensure file is in the same folder as this script"
-    print "2. Ensure CSV file has header as per CT format"
+    print "2. Ensure CSV file has header as per CT format [e.g - identity/easterobjectId]"
     print "3. Enter Account Details"
     print "You are good to go!"
 
     csvfilename = raw_input("Enter CSV file name : ")
+    if not csvfilename.endswith(".csv"):
+        print "Incorrect File Format"
     accid = raw_input("Enter Account ID : ")
     accpcode = raw_input("Enter Account Passcode : ")
 
-    if "easteregg" in csvfilename:
-        print "Ground Control to Major Tom - "
-        print "Commencing Countdown!"
+
 
     with open(csvfilename, "r") as csvfile:
         csvfilereader = csv.reader(csvfile)
@@ -110,3 +110,5 @@ def main():
         payload.append(line)
 
     print "Done"
+
+main()

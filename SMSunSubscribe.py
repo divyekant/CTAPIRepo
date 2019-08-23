@@ -5,13 +5,13 @@ import json
 objectIDListfilename = "objectIDListfilename.csv"
 
 def getHeader(filelist):
-    return filelist[0]
+    return str(filelist[0][0])
 
 
 def getObjectIDs(header,row,accid,accpcode):
     url = "https://api.clevertap.com/1/profile.json"
 
-    querystring = {header: "%s" % row}
+    querystring = {header: "%s" % row[0]}
     headers = {
         'content-type': "application/json",
         'x-clevertap-account-id': accid,
@@ -38,7 +38,7 @@ def uploadUnsubFlag(batch,accid,accpcode):
         'x-clevertap-passcode': accpcode,
     }
     response = requests.request("POST", url, data=payload, headers=headers)
-
+    print payload
     if response.status_code != 200:
         return 0
     else:
@@ -50,9 +50,17 @@ def uploadUnsubFlag(batch,accid,accpcode):
 
 def writetocsv(filename,row):
     with open('%s' % filename, 'a' ) as csvfile:
+        spamwriter = csv.writer(csvfile)
+        spamwriter.writerow([str(row).encode("utf-8")+""])
+    csvfile.close()
+
+def createCSVfile(filename):
+    with open('%s' % filename, 'w+' ) as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',',
                                 quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        spamwriter.writerow(row)
+    csvfile.close()
+
+
 
 def main():
     print "Welcome to SMS Unsub Script!"
@@ -63,9 +71,12 @@ def main():
     print "You are good to go!"
 
     csvfilename = raw_input("Enter CSV file name : ")
+
     if not csvfilename.endswith(".csv"):
         print "Incorrect File Format"
+
     accid = raw_input("Enter Account ID : ")
+
     accpcode = raw_input("Enter Account Passcode : ")
 
 
@@ -81,10 +92,13 @@ def main():
 
     header = getHeader(filelist)
 
-    writetocsv(objectIDListfilename,"")
+    createCSVfile(objectIDListfilename)
 
+    isFirst = True
     for row in filelist:
-        row = row.strip(" ")
+        if isFirst == True:
+            isFirst = False
+            continue
         objids = getObjectIDs(header,row,accid,accpcode)
         for objectId in objids:
             writetocsv(objectIDListfilename,objectId)
@@ -92,33 +106,56 @@ def main():
     payload = {"d": []}
 
     data = {
-        header: "1",
+        "objectId": "1",
         "type": "profile",
         "profileData": {
             "MSG-sms": False
         }
     }
 
-    reader = csv.reader(open(objectIDListfilename, 'rb'))
-    chunksize =  1000
+    batchsize = 1000
 
-    for i, line in enumerate(reader):
-        if (i % chunksize == 0 and i > 0):
-            retryFlag = True
-            retryCount = 0
+    with open(objectIDListfilename, 'r') as csvFile:
 
-            while retryFlag and retryCount <= 3:
-                res = uploadUnsubFlag(payload)
-                if res == 0:
-                    retryFlag = True
-                    retryCount = retryCount + 1
-                else:
-                    retryFlag = False
+        objectCounter = 1
 
+        while True:
+            row = csvFile.readline()
 
-            payload = {"d": []}
-        data[header] = line
-        payload.append(line)
+            if row == "":
+                retryFlag = True
+                retryCount = 0
+
+                while retryFlag and retryCount <= 3:
+                    res = uploadUnsubFlag(payload, accid, accpcode)
+                    if res == 0:
+                        retryFlag = True
+                        retryCount = retryCount + 1
+                    else:
+                        retryFlag = False
+
+                break
+
+            data["objectId"] = (str(row.strip("\n"))).strip("\r")
+            payload["d"].append(data)
+
+            if objectCounter == batchsize:
+                retryFlag = True
+                retryCount = 0
+
+                while retryFlag and retryCount <= 3:
+                    res = uploadUnsubFlag(payload, accid, accpcode)
+                    if res == 0:
+                        retryFlag = True
+                        retryCount = retryCount + 1
+                    else:
+                        retryFlag = False
+
+                objectCounter = 0
+                payload = {"d": []}
+
+            objectCounter = objectCounter + 1
+        csvFile.close()
 
     print "Done"
 

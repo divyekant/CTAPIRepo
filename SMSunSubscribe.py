@@ -58,7 +58,7 @@ def main():
     print "Welcome to SMS Unsub Script!"
     print "Steps:"
     print "1. Ensure file is in the same folder as this script"
-    print "2. Ensure CSV file has header as per CT format [e.g - identity/easterobjectId]"
+    print "2. Ensure CSV file has header as per CT format [e.g - identity/email]"
     print "3. Enter Account Details"
     print "You are good to go!"
 
@@ -104,7 +104,18 @@ def main():
 
     for i, line in enumerate(reader):
         if (i % chunksize == 0 and i > 0):
-            uploadUnsubFlag(payload)
+            retryFlag = True
+            retryCount = 0
+
+            while retryFlag and retryCount <= 3:
+                res = uploadUnsubFlag(payload)
+                if res == 0:
+                    retryFlag = True
+                    retryCount = retryCount + 1
+                else:
+                    retryFlag = False
+
+
             payload = {"d": []}
         data[header] = line
         payload.append(line)

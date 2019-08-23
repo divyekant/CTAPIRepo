@@ -38,7 +38,6 @@ def uploadUnsubFlag(batch,accid,accpcode):
         'x-clevertap-passcode': accpcode,
     }
     response = requests.request("POST", url, data=payload, headers=headers)
-    print payload
     if response.status_code != 200:
         return 0
     else:
@@ -80,7 +79,7 @@ def main():
     accpcode = raw_input("Enter Account Passcode : ")
 
 
-
+    print "Reading CSV file."
     with open(csvfilename, "r") as csvfile:
         csvfilereader = csv.reader(csvfile)
         filelist = []
@@ -92,9 +91,12 @@ def main():
 
     header = getHeader(filelist)
 
+    print "Creating ObjectID CSV file."
+
     createCSVfile(objectIDListfilename)
 
     isFirst = True
+
     for row in filelist:
         if isFirst == True:
             isFirst = False
@@ -115,6 +117,10 @@ def main():
 
     batchsize = 1000
 
+    print "Batch size set as: %s" % batchsize
+    print "Reading ObjectID CSV file."
+
+    batchcount = 0
     with open(objectIDListfilename, 'r') as csvFile:
 
         objectCounter = 1
@@ -133,6 +139,8 @@ def main():
                         retryCount = retryCount + 1
                     else:
                         retryFlag = False
+
+                print "Done for last Batch"
 
                 break
 
@@ -153,6 +161,9 @@ def main():
 
                 objectCounter = 0
                 payload = {"d": []}
+                batchcount = batchcount + 1
+
+                print "Done for Batch No: %s" % batchcount
 
             objectCounter = objectCounter + 1
         csvFile.close()

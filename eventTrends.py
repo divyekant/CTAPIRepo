@@ -4,10 +4,11 @@ import csv
 import time
 
 
-def queryCall(eventName,accid,accpc,dfrom,dto,trendType):
+def queryCall(eventName,accid,accpc,dfrom,dto,trendType,uniqueFlag):
+
     url = "https://api.clevertap.com/1/counts/trends.json"
 
-    payload = "{\"event_name\":\"%s\",\"from\":%s,\"to\":%s,\"unique\":false,\"groups\":{\"foo\":{\"trend_type\":\"%s\"}}}" % (eventName,dfrom,dto,trendType)
+    payload = "{\"event_name\":\"%s\",\"from\":%s,\"to\":%s,\"unique\":%s,\"groups\":{\"foo\":{\"trend_type\":\"%s\"}}}" % (eventName,dfrom,dto,uniqueFlag.lower(),trendType.lower())
     headers = {
         'X-CleverTap-Account-Id': "%s" % accid,
         'X-CleverTap-Passcode': "%s" % accpc,
@@ -81,7 +82,12 @@ def main():
     trendType = raw_input("Enter Trend Type [Monthly,Weekly,Daily] : ")
     dfrom = raw_input("Enter From Date [YYYYMMDD] : ")
     dto = raw_input("Enter To Date [YYYYMMDD] : ")
+    uniqueFlag = raw_input("Do you need Events Trend or Profile Trend [E/P] : ")
 
+    if uniqueFlag == "E":
+        uniqueFlag = "False"
+    else:
+        uniqueFlag = "True"
 
     fileName = "Count for %s" % orgName
 
@@ -101,11 +107,11 @@ def main():
             headers.append("Name")
 
             #  get req id
-            reqID = queryCall(eventName,accid,accpcode,dfrom,dto,trendType)
+            reqID = queryCall(eventName,accid,accpcode,dfrom,dto,trendType,uniqueFlag)
 
             while reqID == 0:
                 time.sleep(5)
-                reqID = queryCall(eventName, accid, accpcode,dfrom,dto,trendType)
+                reqID = queryCall(eventName, accid, accpcode,dfrom,dto,trendType,uniqueFlag)
 
 
             retryFlag = True

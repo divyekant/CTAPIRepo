@@ -73,6 +73,7 @@ def main():
 
     if not csvfilename.endswith(".csv"):
         print "Incorrect File Format"
+        csvfilename = raw_input("Enter CSV file name : ")
 
     accid = raw_input("Enter Account ID : ")
 

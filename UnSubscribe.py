@@ -79,6 +79,8 @@ def main():
     accid = raw_input("Enter Account ID : ")
 
     accpcode = raw_input("Enter Account Passcode : ")
+
+
     channel = raw_input("Enter channel [Email/SMS/Push/WhatsApp] : ")
 
     channel = channel.lower()
@@ -112,13 +114,6 @@ def main():
     payload = {"d": []}
 
     field = "MSG-"+channel
-    data = {
-        "objectId": "1",
-        "type": "profile",
-        "profileData": {
-            field: False
-        }
-    }
 
     batchsize = 1000
 
@@ -132,6 +127,14 @@ def main():
 
         while True:
             row = csvFile.readline()
+
+            data = {
+                "objectId": "1",
+                "type": "profile",
+                "profileData": {
+                    field: False
+                }
+            }
 
             if row == "":
                 retryFlag = True
@@ -150,6 +153,7 @@ def main():
                 break
 
             data["objectId"] = (str(row.strip("\n"))).strip("\r")
+
             payload["d"].append(data)
 
             if objectCounter == batchsize:

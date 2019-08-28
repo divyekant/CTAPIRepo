@@ -67,6 +67,7 @@ def main():
     print "1. Ensure file is in the same folder as this script"
     print "2. Ensure CSV file has header as per CT format [e.g - identity/email]"
     print "3. Enter Account Details"
+    print "4. Enter which channel to Unsubscribe [Email/SMS/Push/WhatsApp]"
     print "You are good to go!"
 
     csvfilename = raw_input("Enter CSV file name : ")
@@ -78,7 +79,9 @@ def main():
     accid = raw_input("Enter Account ID : ")
 
     accpcode = raw_input("Enter Account Passcode : ")
+    channel = raw_input("Enter channel [Email/SMS/Push/WhatsApp] : ")
 
+    channel = channel.lower()
 
     print "Reading CSV file."
     with open(csvfilename, "r") as csvfile:
@@ -108,11 +111,12 @@ def main():
 
     payload = {"d": []}
 
+    field = "MSG-"+channel
     data = {
         "objectId": "1",
         "type": "profile",
         "profileData": {
-            "MSG-sms": False
+            field: False
         }
     }
 

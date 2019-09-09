@@ -107,7 +107,21 @@ def main():
         if isFirst == True:
             isFirst = False
             continue
-        objids = getObjectIDs(header,row,accid,accpcode)
+
+        retryFlag = True
+        retryCount = 0
+
+        while retryFlag and retryCount <= 3:
+            objids = getObjectIDs(header, row, accid, accpcode)
+            if objids == 0:
+                retryFlag = True
+                retryCount = retryCount + 1
+            else:
+                retryFlag = False
+        if retryCount > 3:
+            print "ObjectID Not Found: %s" % row
+            break
+
         for objectId in objids:
             writetocsv(objectIDListfilename,objectId)
 
